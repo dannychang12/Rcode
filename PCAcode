@@ -1,0 +1,75 @@
+rm(list=ls())
+getwd()
+setwd("c:/Users/Danny Chang/desktop/Stat 4504")
+
+teeth <- read.csv("teeth.csv", header=TRUE)
+# teeth
+head(teeth)   #print a few observations
+teethpc<-teeth[,2:9]   # select just the data to be used      
+
+pc.teeth <- princomp(teethpc, cor=TRUE)
+# note one problem with R is that the method works even when the code is
+# not exactly correct pc.teeth <- princomp(teethpc, scale=TRUE, center=TRUE)
+# produces results but they are wrong
+
+# names() tells you what information is available from the output
+names(pc.teeth)
+
+# summarize the pca   - note the std devs are divided by n not n-1
+# makes them the square root of the eigenvalue
+summary(pc.teeth)
+
+# do things a bit better
+eigenvectors<-pc.teeth$loadings
+eigenvalues <- pc.teeth$sdev*pc.teeth$sdev 
+
+
+pc.teeth$loadings    # note that these are scaled so the sum of squares is 1.0
+                     # not loadings but eigenvectors
+eigenvalues          # print eigenvalues and eigenvectors
+eigenvectors
+# obtain the correlations with the variables
+  cor(teeth[,2:9], pc.teeth$scores)
+# make things a bit nicer
+round( cor(teeth[,2:9], pc.teeth$scores) , 3)   # round the output
+
+
+                        
+# scree plot      - note the default is a barchart
+  screeplot(pc.teeth,type='l',main='Screeplot for teeth data') #screeplot with dots and lines
+  abline(1,0,col='red',lty=2) #horizontal line at 1
+
+# create a new plot window
+windows()
+# scatterplot of scores with labels given by mammal in col 1
+#  type=n turns off the default symbol
+plot(pc.teeth$scores, type='n',xlab="PC1(59%)", ylab="PC2(18%)" )
+ points(pc.teeth$scores,cex=0.5)   # this puts a small point at the center
+ text(pc.teeth$scores,label=teeth[,1], cex=0.5) #add tname to plot
+
+# ------------------------------------------------------------------ #
+# another way to code the analysis     
+
+   pc.fit <- prcomp(~  top.incisor +bottom.incisor +   top.cannine +   bot.cannine   +  top.premol +
+                        botpremol   +     topmolar  + botmolar,
+              data=teeth,   scale.=TRUE     )
+eigenvalues <- pc.fit$sdev * pc.fit$sdev
+eigenvectors <- pc.fit$rotation
+   eigenvalues
+   round(eigenvectors,3)
+   
+   summary(pc.fit)
+ 
+# third approach -------------------------------------------- #
+# Another approach - fit using factor analysis function
+# two factor solution   - useful for printing when p is large
+#   this produces the ml solution
+#  fit <- factanal(teeth[,2:9], factors=2, rotation = "none")
+#   print( fit, digits=2, cutoff = 0.2, sort=TRUE)
+
+
+library(psych)
+
+#Factor Analysis - Principal Components Method
+pc2 <- principal(teethpc,2,rotate="none")
+pc2
